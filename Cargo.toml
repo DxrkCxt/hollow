@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+[workspace]
+resolver = "3"
+members = [
+    "hollow-protocol",
+    "hollow-text",
+    "hollow-data",
+    "hollow-world",
+    "hollow-server",
+    "hollow",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.96"
+license = "GPL-3.0-only"
+authors = ["DxrkCxt"]
+repository = "https://github.com/DxrkCxt/hollow"
+description = "Hollow — a lightweight Minecraft limbo server written in Rust"
+
+[workspace.dependencies]
+# Internal crates
+hollow-protocol = { version = "1.0.0", path = "hollow-protocol" }
+hollow-text = { version = "1.0.0", path = "hollow-text" }
+hollow-data = { version = "1.0.0", path = "hollow-data" }
+hollow-world = { version = "1.0.0", path = "hollow-world" }
+hollow-server = { version = "1.0.0", path = "hollow-server" }
+
+# External crates
+bytes = "1.11.1"
+crab_nbt = "0.2.11"
+flate2 = "1.1.9"
+hmac = "0.13.0"
+md-5 = "0.11.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.150", features = ["preserve_order"] }
+serde_norway = "0.9.42"
+sha2 = "0.11.0"
+sysinfo = "0.39.3"
+time = { version = "0.3.47", features = ["formatting", "local-offset", "macros"] }
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "net", "time", "io-util", "sync", "macros", "signal"] }
+uuid = { version = "1.23.2", features = ["v4"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+# Default unwind (not "abort"): a panic in one connection task is caught by tokio
+# and only drops that connection, instead of aborting the whole server process.
+strip = true

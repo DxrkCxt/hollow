@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+[package]
+name = "hollow-data"
+description = "Hollow — shared configuration data types: namespaced keys, boss bar, title, ping data, info forwarding, transport type"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[features]
+# Mirrors the workspace `io-uring` feature so TransportType::is_available() can gate it.
+io-uring = []
+
+[dependencies]
+hollow-text.workspace = true

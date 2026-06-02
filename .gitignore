@@ -1,0 +1,13 @@
+# Rust build output
+/target
+**/target
+
+# Runtime artifacts written when the server runs from a checkout
+# (settings.yml is generated from hollow-server/resources/settings.yml).
+/settings.yml
+*.log
+
+# Editor / OS
+.idea
+.vscode
+.DS_Store

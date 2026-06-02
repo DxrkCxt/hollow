@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+[package]
+name = "hollow-world"
+description = "Hollow — dimension types and the embedded per-version dimension/codec/tags registry"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hollow-protocol.workspace = true
+hollow-data.workspace = true
+crab_nbt.workspace = true

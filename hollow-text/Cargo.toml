@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+[package]
+name = "hollow-text"
+description = "Hollow — text subsystem: component model, colours, legacy codes, gson, and a full MiniMessage parser/serializer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hollow-protocol.workspace = true
+serde_json.workspace = true

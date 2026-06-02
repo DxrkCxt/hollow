@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Hollow — Docker Compose.
+#
+#   Single instance, building locally:
+#       docker compose up --build
+#
+#   Use the prebuilt image from GHCR instead of building (drop --build):
+#       docker compose up           # pulls ghcr.io/dxrkcxt/hollow:latest
+#
+#   Deploy MANY instances at once. The published port range hands each replica its
+#   own host port (25565, 25566, … up to the range end), so there are no clashes:
+#       docker compose up -d --scale hollow=10
+#
+# Per-instance configuration is via HOLLOW_* env vars (see `environment:` below);
+# precedence is CLI flags > env > settings.yml > defaults.
+
+name: hollow
+
+services:
+  hollow:
+    build:
+      context: .
+    image: ghcr.io/dxrkcxt/hollow:latest
+    restart: unless-stopped
+    environment:
+      # Bind inside the container; the published range maps it to a host port.
+      HOLLOW_BIND: "0.0.0.0:25565"
+      HOLLOW_MAX_PLAYERS: "0" # 0 = unlimited
+      HOLLOW_MOTD: "<gradient:blue:white>Hollow"
+      # HOLLOW_HOST / HOLLOW_PORT override either half of HOLLOW_BIND.
+      # Behind a Velocity proxy (modern forwarding):
+      # HOLLOW_FORWARDING: "MODERN"
+      # HOLLOW_FORWARDING_SECRET: "@/run/secrets/velocity_secret"   # or the literal secret
+      # Any settings.yml key works as HOLLOW_<UPPER_SNAKE>; see README for the full list.
+    # The image ships a built-in HEALTHCHECK (`hollow --healthcheck`); no extra config needed.
+    ports:
+      # Range publish: supports `--scale hollow=N` (each replica gets a distinct host
+      # port in 25565-25584). For a single fixed instance use "25565:25565" instead.
+      - "25565-25584:25565"
+    # Persist / hand-edit the generated settings.yml (written to /data on first run).
+    # NOTE: a named volume is shared across scaled replicas — fine, since they share
+    # config. Give individually-configured instances their own service + volume.
+    volumes:
+      - hollow-data:/data
+
+  # --- Example: a second, separately-configured instance (uncomment to use) ---
+  # hollow-eu:
+  #   image: ghcr.io/dxrkcxt/hollow:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     HOLLOW_PORT: "25600"
+  #     HOLLOW_MAX_PLAYERS: "200"
+  #   ports:
+  #     - "25600:25600"
+  #   volumes:
+  #     - hollow-eu-data:/data
+
+volumes:
+  hollow-data:
+  # hollow-eu-data:

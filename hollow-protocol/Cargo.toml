@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+[package]
+name = "hollow-protocol"
+description = "Hollow — Minecraft wire-protocol primitives: ByteMessage, versions, packet registry, snapshots, NBT/UUID/JSON helpers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+bytes.workspace = true
+crab_nbt.workspace = true
+flate2.workspace = true
+md-5.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
