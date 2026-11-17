@@ -74,6 +74,8 @@ versions! {
     (V1_21_9, 773, "1.21.9"),
     (V1_21_11, 774, "1.21.11"),
     (V26_1, 775, "26.1"),
+    (V26_2, 776, "26.2"),
+    (V26_3, 777, "26.3"),
 }
 
 impl Version {
@@ -142,13 +144,18 @@ mod tests {
     #[test]
     fn min_max() {
         assert_eq!(Version::min(), Version::V1_7_2);
-        assert_eq!(Version::max(), Version::V26_1);
+        assert_eq!(Version::max(), Version::V26_3);
     }
 
     #[test]
     fn of_known_and_unknown() {
         assert_eq!(Version::of(47), Version::V1_8);
         assert_eq!(Version::of(767), Version::V1_21);
+        // 26.1, 26.1.1 and 26.1.2 share 775; 26.2 is 776 and 26.3 is 777.
+        assert_eq!(Version::of(775), Version::V26_1);
+        assert_eq!(Version::of(776), Version::V26_2);
+        assert_eq!(Version::of(777), Version::V26_3);
+        assert_eq!(Version::of(778), Version::Undefined);
         assert_eq!(Version::of(-1), Version::Undefined);
         assert_eq!(Version::of(99999), Version::Undefined);
     }

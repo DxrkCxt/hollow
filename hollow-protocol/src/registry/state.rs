@@ -255,8 +255,9 @@ impl Registry {
                 KeepAlive,
                 &[m(0x03, V1_20_2, V1_20_3), m(0x04, V1_20_5, max)],
             );
-            client.register(KnownPacks, &[m(0x0E, V1_20_5, max)]);
-            client.register(UpdateTags, &[m(0x0D, V1_20_5, max)]);
+            // 26.3 inserted clientbound post_effects (0x0A), shifting the packets after it.
+            client.register(KnownPacks, &[m(0x0E, V1_20_5, V26_2), m(0x0F, V26_3, max)]);
+            client.register(UpdateTags, &[m(0x0D, V1_20_5, V26_2), m(0x0E, V26_3, max)]);
             client.register(
                 RegistryData,
                 &[m(0x05, V1_20_2, V1_20_3), m(0x07, V1_20_5, max)],
@@ -362,7 +363,8 @@ impl Registry {
                     m(0x2C, V1_21_2, V1_21_4),
                     m(0x2B, V1_21_5, V1_21_7),
                     m(0x30, V1_21_9, V1_21_11),
-                    m(0x31, V26_1, max),
+                    m(0x31, V26_1, V26_2),
+                    m(0x32, V26_3, max),
                 ],
             );
             client.register(
@@ -404,7 +406,8 @@ impl Registry {
                     m(0x3A, V1_21_2, V1_21_4),
                     m(0x39, V1_21_5, V1_21_7),
                     m(0x3E, V1_21_9, V1_21_11),
-                    m(0x40, V26_1, max),
+                    m(0x40, V26_1, V26_2),
+                    m(0x41, V26_3, max),
                 ],
             );
             client.register(
@@ -428,7 +431,8 @@ impl Registry {
                     m(0x42, V1_21_2, V1_21_4),
                     m(0x41, V1_21_5, V1_21_7),
                     m(0x46, V1_21_9, V1_21_11),
-                    m(0x48, V26_1, max),
+                    m(0x48, V26_1, V26_2),
+                    m(0x49, V26_3, max),
                 ],
             );
             client.register(
@@ -451,7 +455,8 @@ impl Registry {
                     m(0x27, V1_21_2, V1_21_4),
                     m(0x26, V1_21_5, V1_21_7),
                     m(0x2B, V1_21_9, V1_21_11),
-                    m(0x2C, V26_1, max),
+                    m(0x2C, V26_1, V26_2),
+                    m(0x2D, V26_3, max),
                 ],
             );
             client.register(
@@ -473,7 +478,8 @@ impl Registry {
                     m(0x73, V1_21_2, V1_21_4),
                     m(0x72, V1_21_5, V1_21_7),
                     m(0x77, V1_21_9, V1_21_11),
-                    m(0x79, V26_1, max),
+                    m(0x79, V26_1, V26_2),
+                    m(0x7C, V26_3, max),
                 ],
             );
             client.register(
@@ -510,7 +516,8 @@ impl Registry {
                     m(0x40, V1_21_2, V1_21_4),
                     m(0x3F, V1_21_5, V1_21_7),
                     m(0x44, V1_21_9, V1_21_11),
-                    m(0x46, V26_1, max),
+                    m(0x46, V26_1, V26_2),
+                    m(0x47, V26_3, max),
                 ],
             );
             client.register(
@@ -539,7 +546,8 @@ impl Registry {
                     m(0x6C, V1_21_2, V1_21_4),
                     m(0x6B, V1_21_5, V1_21_7),
                     m(0x70, V1_21_9, V1_21_11),
-                    m(0x72, V26_1, max),
+                    m(0x72, V26_1, V26_2),
+                    m(0x74, V26_3, max),
                 ],
             );
             client.register(
@@ -556,7 +564,8 @@ impl Registry {
                     m(0x6A, V1_21_2, V1_21_4),
                     m(0x69, V1_21_5, V1_21_7),
                     m(0x6E, V1_21_9, V1_21_11),
-                    m(0x70, V26_1, max),
+                    m(0x70, V26_1, V26_2),
+                    m(0x72, V26_3, max),
                 ],
             );
             client.register(
@@ -573,7 +582,8 @@ impl Registry {
                     m(0x6D, V1_21_2, V1_21_4),
                     m(0x6C, V1_21_5, V1_21_7),
                     m(0x71, V1_21_9, V1_21_11),
-                    m(0x73, V26_1, max),
+                    m(0x73, V26_1, V26_2),
+                    m(0x75, V26_3, max),
                 ],
             );
             client.register(
@@ -600,7 +610,8 @@ impl Registry {
                     m(0x74, V1_21_2, V1_21_4),
                     m(0x73, V1_21_5, V1_21_7),
                     m(0x78, V1_21_9, V1_21_11),
-                    m(0x7A, V26_1, max),
+                    m(0x7A, V26_1, V26_2),
+                    m(0x7D, V26_3, max),
                 ],
             );
             client.register(
@@ -614,7 +625,8 @@ impl Registry {
                     m(0x5B, V1_21_2, V1_21_4),
                     m(0x5A, V1_21_5, V1_21_7),
                     m(0x5F, V1_21_9, V1_21_11),
-                    m(0x61, V26_1, max),
+                    m(0x61, V26_1, V26_2),
+                    m(0x63, V26_3, max),
                 ],
             );
             client.register(
@@ -624,7 +636,8 @@ impl Registry {
                     m(0x22, V1_20_5, V1_21),
                     m(0x23, V1_21_2, V1_21_4),
                     m(0x22, V1_21_5, V1_21_7),
-                    m(0x26, V1_21_9, max),
+                    m(0x26, V1_21_9, V26_2),
+                    m(0x27, V26_3, max),
                 ],
             );
             client.register(
@@ -635,7 +648,8 @@ impl Registry {
                     m(0x28, V1_21_2, V1_21_4),
                     m(0x27, V1_21_5, V1_21_7),
                     m(0x2C, V1_21_9, V1_21_11),
-                    m(0x2D, V26_1, max),
+                    m(0x2D, V26_1, V26_2),
+                    m(0x2E, V26_3, max),
                 ],
             );
 
@@ -684,6 +698,77 @@ mod tests {
         // 26.1: 0x2C
         let r = reg.client_registry(State::Play, Version::V26_1).unwrap();
         assert_eq!(r.get_id(PacketKind::KeepAlive), Some(0x2C));
+    }
+
+    /// Every packet Hollow speaks on 26.x, in both directions. Expected IDs are the
+    /// registration order in the vanilla 26.1.2 / 26.2 / 26.3 server's `*Protocols`
+    /// classes (ID = index of the `addPacket` call).
+    #[test]
+    fn ids_26_x_match_vanilla() {
+        use PacketKind::*;
+        use State::{Configuration as Conf, Handshaking, Login, Play, Status};
+        const CB: bool = true; // clientbound
+        const SB: bool = false; // serverbound
+        // (state, direction, kind, [26.1, 26.2, 26.3])
+        let table: &[(State, bool, PacketKind, [i32; 3])] = &[
+            (Handshaking, SB, Handshake, [0x00, 0x00, 0x00]),
+            (Status, SB, StatusRequest, [0x00, 0x00, 0x00]),
+            (Status, SB, StatusPing, [0x01, 0x01, 0x01]),
+            (Status, CB, StatusResponse, [0x00, 0x00, 0x00]),
+            (Status, CB, StatusPing, [0x01, 0x01, 0x01]),
+            (Login, SB, LoginStart, [0x00, 0x00, 0x00]),
+            (Login, SB, LoginPluginResponse, [0x02, 0x02, 0x02]),
+            (Login, SB, LoginAcknowledged, [0x03, 0x03, 0x03]),
+            (Login, CB, LoginDisconnect, [0x00, 0x00, 0x00]),
+            (Login, CB, LoginSuccess, [0x02, 0x02, 0x02]),
+            (Login, CB, LoginPluginRequest, [0x04, 0x04, 0x04]),
+            (Conf, CB, PluginMessage, [0x01, 0x01, 0x01]),
+            (Conf, CB, Disconnect, [0x02, 0x02, 0x02]),
+            (Conf, CB, FinishConfiguration, [0x03, 0x03, 0x03]),
+            (Conf, CB, KeepAlive, [0x04, 0x04, 0x04]),
+            (Conf, CB, RegistryData, [0x07, 0x07, 0x07]),
+            (Conf, CB, UpdateTags, [0x0D, 0x0D, 0x0E]),
+            (Conf, CB, KnownPacks, [0x0E, 0x0E, 0x0F]),
+            (Conf, SB, PluginMessage, [0x02, 0x02, 0x02]),
+            (Conf, SB, FinishConfiguration, [0x03, 0x03, 0x03]),
+            (Conf, SB, KeepAlive, [0x04, 0x04, 0x04]),
+            (Conf, SB, KnownPacks, [0x07, 0x07, 0x07]),
+            (Play, SB, KeepAlive, [0x1C, 0x1C, 0x1C]),
+            (Play, CB, BossBar, [0x09, 0x09, 0x09]),
+            (Play, CB, DeclareCommands, [0x10, 0x10, 0x10]),
+            (Play, CB, PluginMessage, [0x18, 0x18, 0x18]),
+            (Play, CB, Disconnect, [0x20, 0x20, 0x20]),
+            (Play, CB, GameEvent, [0x26, 0x26, 0x27]),
+            (Play, CB, KeepAlive, [0x2C, 0x2C, 0x2D]),
+            (Play, CB, ChunkWithLight, [0x2D, 0x2D, 0x2E]),
+            (Play, CB, JoinGame, [0x31, 0x31, 0x32]),
+            (Play, CB, PlayerAbilities, [0x40, 0x40, 0x41]),
+            (Play, CB, PlayerInfo, [0x46, 0x46, 0x47]),
+            (Play, CB, PlayerPositionAndLook, [0x48, 0x48, 0x49]),
+            (Play, CB, SpawnPosition, [0x61, 0x61, 0x63]),
+            (Play, CB, TitleSetSubTitle, [0x70, 0x70, 0x72]),
+            (Play, CB, TitleSetTitle, [0x72, 0x72, 0x74]),
+            (Play, CB, TitleTimes, [0x73, 0x73, 0x75]),
+            (Play, CB, ChatMessage, [0x79, 0x79, 0x7C]),
+            (Play, CB, PlayerListHeader, [0x7A, 0x7A, 0x7D]),
+        ];
+
+        let reg = registry();
+        for &(state, clientbound, kind, ids) in table {
+            let versions = [Version::V26_1, Version::V26_2, Version::V26_3];
+            for (version, id) in versions.into_iter().zip(ids) {
+                let r = if clientbound {
+                    reg.client_registry(state, version)
+                } else {
+                    reg.server_registry(state, version)
+                }
+                .unwrap();
+                let ctx = format!("{kind:?} {state:?} {version:?} clientbound={clientbound}");
+                assert_eq!(r.get_id(kind), Some(id), "{ctx}");
+                // The id must also map back to this kind: no stale overlapping range.
+                assert_eq!(r.get_kind(id), Some(kind), "{ctx}");
+            }
+        }
     }
 
     #[test]

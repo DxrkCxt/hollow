@@ -9,7 +9,7 @@ Author: **DxrkCxt**.
 ## Features
 
 - High-performance async networking on `tokio` (no thread-per-player).
-- Multi-version support: protocol **1.7.2 → 26.1**.
+- Multi-version support: protocol **1.7.2 → 26.3** (snapshots are not supported).
 - BungeeCord (legacy), BungeeGuard, and Velocity (modern) info forwarding.
 - Full MiniMessage text format (gradient, rainbow, colours, decorations, click/hover, …).
 - Drop-in `settings.yml`, plus CLI flags and `HOLLOW_*` env vars for per-instance config.

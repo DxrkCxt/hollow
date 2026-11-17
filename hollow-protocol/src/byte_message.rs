@@ -7,7 +7,7 @@
 //! `DecodeError` where the Java original throws DecoderException).
 
 use bytes::{BufMut, BytesMut};
-use crab_nbt::NbtCompound;
+use crab_nbt::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
 use crate::registry::Version;
@@ -258,6 +258,12 @@ impl ByteMessage {
 
     pub fn write_compound_tag(&mut self, compound: &NbtCompound, version: Version) {
         let bytes = nbt::write_compound(compound, version);
+        self.buf.put_slice(&bytes);
+    }
+
+    /// Write a tag of any type (e.g. a list registry element on 26.3+).
+    pub fn write_tag(&mut self, tag: &NbtTag, version: Version) {
+        let bytes = nbt::write_tag(tag, version);
         self.buf.put_slice(&bytes);
     }
 }

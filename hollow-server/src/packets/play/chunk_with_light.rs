@@ -60,17 +60,20 @@ impl PacketChunkWithLight {
     }
 
     fn write_light_data(&self, buf: &mut ByteMessage, version: Version) {
-        // Sky y mask: null BitSet → writeVarInt(0)
+        // Sky y mask, block y mask, empty sky y mask: empty BitSets. An empty BitSet is a
+        // zero-length array in both the long[] and the 26.3+ byte[] encoding.
         buf.write_var_int(0);
-        // Block y mask: null BitSet → writeVarInt(0)
         buf.write_var_int(0);
-        // Empty sky y mask: null BitSet → writeVarInt(0)
         buf.write_var_int(0);
 
         // Empty block y mask: BitSet with bits 0..=(sections+1) set
         let sections = self.dimension.chunk_sections(version);
         let num_bits = (sections + 2) as usize;
-        write_bitset_all_set(buf, num_bits);
+        if version.more_or_equal(Version::V26_3) {
+            write_bitset_all_set_bytes(buf, num_bits);
+        } else {
+            write_bitset_all_set(buf, num_bits);
+        }
 
         // Skip sky light arrays
         buf.write_var_int(0);
@@ -100,6 +103,18 @@ fn write_bitset_all_set(buf: &mut ByteMessage, num_bits: usize) {
             (1i64 << bits_in_this_long) - 1
         };
         buf.write_i64(mask);
+    }
+}
+
+/// 26.3+ `ByteBufCodecs.BIT_SET`: `BitSet.toByteArray()` (little-endian, trailing zero
+/// bytes trimmed) written as a VarInt-length byte array, here with the first
+/// `num_bits` bits set.
+fn write_bitset_all_set_bytes(buf: &mut ByteMessage, num_bits: usize) {
+    let num_bytes = num_bits.div_ceil(8);
+    buf.write_var_int(num_bytes as i32);
+    for i in 0..num_bytes {
+        let bits_in_this_byte = (num_bits - i * 8).min(8);
+        buf.write_u8(((1u16 << bits_in_this_byte) - 1) as u8);
     }
 }
 
@@ -165,5 +180,65 @@ fn write_heightmaps(buf: &mut ByteMessage, version: Version) {
         let mut root = NbtCompound::new();
         root.child_tags.push(("root".to_string(), NbtTag::Compound(inner)));
         buf.write_compound_tag(&root, version);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hollow_world::{DimensionRegistry, DimensionType};
+
+    fn bytes(f: impl FnOnce(&mut ByteMessage)) -> Vec<u8> {
+        let mut buf = ByteMessage::new();
+        f(&mut buf);
+        buf.to_byte_array()
+    }
+
+    #[test]
+    fn bitset_long_array_encoding() {
+        // 26 bits (overworld: 24 sections + 2) -> one long 0x03FF_FFFF.
+        assert_eq!(
+            bytes(|b| write_bitset_all_set(b, 26)),
+            [1, 0, 0, 0, 0, 0x03, 0xFF, 0xFF, 0xFF]
+        );
+        assert_eq!(bytes(|b| write_bitset_all_set(b, 0)), [0]);
+    }
+
+    #[test]
+    fn bitset_byte_array_encoding_26_3() {
+        // Matches java.util.BitSet#toByteArray for bits 0..n set.
+        assert_eq!(
+            bytes(|b| write_bitset_all_set_bytes(b, 26)),
+            [4, 0xFF, 0xFF, 0xFF, 0x03]
+        );
+        assert_eq!(
+            bytes(|b| write_bitset_all_set_bytes(b, 18)),
+            [3, 0xFF, 0xFF, 0x03]
+        );
+        assert_eq!(
+            bytes(|b| write_bitset_all_set_bytes(b, 16)),
+            [2, 0xFF, 0xFF]
+        );
+        assert_eq!(bytes(|b| write_bitset_all_set_bytes(b, 0)), [0]);
+    }
+
+    #[test]
+    fn only_light_mask_encoding_changes_in_26_3() {
+        let registry = DimensionRegistry::load();
+        let dimension = DimensionType::Overworld.create_versioned_dimension(&registry);
+        let chunk = PacketChunkWithLight::new(0, 0, dimension);
+        let v26_2 = bytes(|b| chunk.encode(b, Version::V26_2));
+        let v26_3 = bytes(|b| chunk.encode(b, Version::V26_3));
+
+        // Tail: 3 empty masks, empty-block mask, no sky/block light arrays.
+        assert_eq!(
+            &v26_2[v26_2.len() - 14..],
+            &[0, 0, 0, 1, 0, 0, 0, 0, 0x03, 0xFF, 0xFF, 0xFF, 0, 0]
+        );
+        assert_eq!(
+            &v26_3[v26_3.len() - 10..],
+            &[0, 0, 0, 4, 0xFF, 0xFF, 0xFF, 0x03, 0, 0]
+        );
+        assert_eq!(&v26_2[..v26_2.len() - 14], &v26_3[..v26_3.len() - 10]);
     }
 }

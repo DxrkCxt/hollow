@@ -70,6 +70,10 @@ impl PacketSnapshots {
         let login_success = PacketLoginSuccess {
             username: player_list_name.clone(),
             uuid,
+            // 26.2+: one random session id for the whole process, shared by all
+            // connections. Vanilla shares one too, but regenerates it whenever the
+            // server becomes empty.
+            session_id: Uuid::new_v4(),
         };
 
         let versioned_dimension = config

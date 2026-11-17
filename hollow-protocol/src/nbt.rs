@@ -35,6 +35,22 @@ pub fn write_compound(compound: &NbtCompound, version: Version) -> Bytes {
     }
 }
 
+/// Serialize any tag (not only a compound) the way `write_compound` does: type id +
+/// payload on 1.20.2+, with an empty root name in between before that. For a compound
+/// this is byte-identical to `write_compound`.
+pub fn write_tag(tag: &NbtTag, version: Version) -> Bytes {
+    // TAG_End never carries a name, in either format.
+    if version.more_or_equal(Version::V1_20_2) || matches!(tag, NbtTag::End) {
+        return tag.serialize();
+    }
+    let data = tag.serialize_data();
+    let mut out = Vec::with_capacity(3 + data.len());
+    out.push(tag.get_type_id());
+    out.extend_from_slice(&[0, 0]); // empty name
+    out.extend_from_slice(&data);
+    Bytes::from(out)
+}
+
 /// Port of NbtUtils.fromJson: a non-object value is wrapped as `{ "text": value }`.
 pub fn from_json(value: &Value) -> NbtCompound {
     if let Value::Object(map) = value {
@@ -175,6 +191,35 @@ mod tests {
         assert_eq!(c.child_tags.len(), 1);
         assert_eq!(c.child_tags[0].0, "text");
         assert!(matches!(c.child_tags[0].1, NbtTag::String(_)));
+    }
+
+    #[test]
+    fn write_tag_matches_write_compound_for_compounds() {
+        let compound = from_json(&json!({"text": "hi", "bold": true}));
+        let tag = NbtTag::Compound(compound.clone());
+        for version in [Version::V1_20, Version::V1_20_2, Version::V26_3] {
+            assert_eq!(
+                write_tag(&tag, version),
+                write_compound(&compound, version),
+                "{version:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn write_tag_writes_non_compound_roots() {
+        let list = NbtTag::List(vec![NbtTag::Int(7)]);
+        // Network NBT (1.20.2+): type id, then the payload (element type, length, items).
+        assert_eq!(
+            write_tag(&list, Version::V26_3).to_vec(),
+            [9, 3, 0, 0, 0, 1, 0, 0, 0, 7]
+        );
+        // Older versions keep the (empty) root name, except for TAG_End.
+        assert_eq!(
+            write_tag(&list, Version::V1_20).to_vec(),
+            [9, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 7]
+        );
+        assert_eq!(write_tag(&NbtTag::End, Version::V1_20).to_vec(), [0]);
     }
 
     #[test]

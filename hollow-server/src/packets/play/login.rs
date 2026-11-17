@@ -28,6 +28,9 @@ pub struct PacketLogin {
     pub limited_crafting: bool,
     pub portal_cooldown: i32,
     pub sea_level: i32,
+    /// 26.2+. Vanilla sends `MinecraftServer.usesAuthentication()`; a limbo (and any
+    /// backend behind a proxy) runs in offline mode, so this stays `false`.
+    pub online_mode: bool,
     pub secure_profile: bool,
 }
 
@@ -59,6 +62,7 @@ impl PacketLogin {
             limited_crafting: false,
             portal_cooldown: 0,
             sea_level: 0,
+            online_mode: false,
             secure_profile: false,
         }
     }
@@ -169,8 +173,19 @@ impl PacketOut for PacketLogin {
             // Dimension name (world name)
             buf.write_namespaced_key(&self.dimension.key().to_string());
             buf.write_i64(self.seed);
-            buf.write_u8(self.game_mode as u8);
-            buf.write_i8(self.previous_game_mode as i8);
+            if version.more_or_equal(Version::V26_3) {
+                // 26.3: GameType.STREAM_CODEC (VarInt id) and GameType.OPTIONAL_STREAM_CODEC
+                // (ByteBufCodecs.OPTIONAL_VAR_INT: 0 = none, otherwise id + 1).
+                buf.write_var_int(self.game_mode);
+                buf.write_var_int(if self.previous_game_mode < 0 {
+                    0
+                } else {
+                    self.previous_game_mode + 1
+                });
+            } else {
+                buf.write_u8(self.game_mode as u8);
+                buf.write_i8(self.previous_game_mode as i8);
+            }
         }
 
         // Debug / flat (1.16+)
@@ -194,6 +209,11 @@ impl PacketOut for PacketLogin {
             buf.write_var_int(self.sea_level);
         }
 
+        // Online mode (26.2+), between the spawn info and enforcesSecureChat
+        if version.more_or_equal(Version::V26_2) {
+            buf.write_bool(self.online_mode);
+        }
+
         // Secure profile (1.20.5+)
         if version.more_or_equal(Version::V1_20_5) {
             buf.write_bool(self.secure_profile);
@@ -202,5 +222,52 @@ impl PacketOut for PacketLogin {
 
     fn kind(&self) -> PacketKind {
         PacketKind::JoinGame
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hollow_world::{DimensionRegistry, DimensionType};
+
+    fn encode(version: Version, previous_game_mode: i32) -> Vec<u8> {
+        let registry = DimensionRegistry::load();
+        let mut packet = PacketLogin::with_dimension(
+            DimensionType::Overworld.create_versioned_dimension(&registry),
+        );
+        packet.game_mode = 3;
+        packet.previous_game_mode = previous_game_mode;
+        packet.secure_profile = true;
+        let mut buf = ByteMessage::new();
+        packet.encode(&mut buf, version);
+        buf.to_byte_array()
+    }
+
+    /// Bytes after the seed: game mode, previous game mode, debug, flat, no death location,
+    /// portal cooldown, sea level, [online mode on 26.2+], enforces secure chat.
+    fn tail(bytes: &[u8], len: usize) -> &[u8] {
+        &bytes[bytes.len() - len..]
+    }
+
+    #[test]
+    fn online_mode_added_in_26_2() {
+        let v26_1 = encode(Version::V26_1, -1);
+        let v26_2 = encode(Version::V26_2, -1);
+        assert_eq!(v26_2.len(), v26_1.len() + 1);
+        assert_eq!(tail(&v26_1, 8), &[3, 0xFF, 0, 0, 0, 0, 0, 1]);
+        assert_eq!(tail(&v26_2, 9), &[3, 0xFF, 0, 0, 0, 0, 0, 0, 1]);
+        assert_eq!(&v26_1[..v26_1.len() - 1], &v26_2[..v26_1.len() - 1]);
+    }
+
+    #[test]
+    fn game_modes_are_var_ints_in_26_3() {
+        // No previous game mode -> OPTIONAL_VAR_INT 0 (not the byte 0xFF used before 26.3).
+        let none = encode(Version::V26_3, -1);
+        assert_eq!(tail(&none, 9), &[3, 0, 0, 0, 0, 0, 0, 0, 1]);
+        assert_eq!(none.len(), encode(Version::V26_2, -1).len());
+
+        // Previous game mode n is written as n + 1.
+        let creative = encode(Version::V26_3, 1);
+        assert_eq!(tail(&creative, 9), &[3, 2, 0, 0, 0, 0, 0, 0, 1]);
     }
 }
